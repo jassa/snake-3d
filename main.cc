@@ -1,9 +1,9 @@
 //
-//  main.cpp
+//  main.cc
 //  Snake
 //
 //  Created by Javier Saldana on 4/9/13.
-//  Last Updated by Javier Saldana on 4/23/13.
+//  Last Updated by Javier Saldana on 4/26/13.
 //  a00618475
 //
 
@@ -23,6 +23,9 @@
 #include <time.h>
 
 #include "image.h"
+#include "snake.h"
+
+Snake* player;
 
 /*
    Ventana
@@ -103,13 +106,6 @@ bool applePresent = false;
 // Flag para el evento "crece"
 int crece = 0;
 
-// Largo inicial
-int largo = 2;
-int largoMaximo = 100 + largo;
-
-// Serpiente inicial
-double snake[100+2][2] = {{0,0},{0,1}};
-
 
 /** -- Fin de las variables -- **/
 
@@ -148,17 +144,17 @@ double snake[100+2][2] = {{0,0},{0,1}};
 
 void loadTexture(Image* image,int k) {
     glBindTexture(GL_TEXTURE_2D, texName[k]); // Tell OpenGL which texture to edit
-    
+
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    
+
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-    
+
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-    
-    //Map the image to the texture
+
+    // Map the image to the texture
     glTexImage2D(GL_TEXTURE_2D,               // Always GL_TEXTURE_2D
                  0,                           // 0 for now
                  GL_RGB,                      // Format OpenGL uses for image
@@ -166,7 +162,7 @@ void loadTexture(Image* image,int k) {
                  0,                           // The border of the image
                  GL_RGB,                      // GL_RGB, because pixels are stored in RGB format
                  GL_UNSIGNED_BYTE,            // GL_UNSIGNED_BYTE, because pixels are stored
-                 //   as unsigned numbers
+                                              //   as unsigned numbers
                  image->pixels);              // The actual pixel data
 }
 
@@ -182,8 +178,7 @@ Image* loadBMP(const char* filename);
  *  - Estado del juego
  *
  */
-static void init()
-{
+static void init() {
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_BLEND);
@@ -192,11 +187,9 @@ static void init()
     glEnable(GL_COLOR_MATERIAL);
     glShadeModel(GL_FLAT);
 
-    // Posición inicial de la serpiente
-    snake[0][0] = x;
-    snake[0][1] = y;
-    snake[1][0] = x-1;
-    snake[1][1] = y;
+    player = new Snake(unitsPerRow / 2, // initial position in X
+                       unitsPerCol / 2, // initial position in y
+                       100);            // maximum length of tail
 
     // Random seed
     srand((int) time(NULL));
@@ -207,6 +200,7 @@ static void init()
 
     image = loadBMP("/Users/javier/Documents/Tec/Graficas Computacionales/snake/snake/snake.bmp");
     loadTexture(image, 0);
+    
     image = loadBMP("/Users/javier/Documents/Tec/Graficas Computacionales/snake/snake/apple.bmp");
     loadTexture(image, 1);
 
@@ -256,8 +250,7 @@ double yPos2d(double y) {
 }
 
 // Dibuja un String
-void drawString (void *font, const char *s, float x, float y)
-{
+void drawString (void *font, const char *s, float x, float y) {
     unsigned int i;
     glRasterPos2f(x, y);
 
@@ -265,8 +258,7 @@ void drawString (void *font, const char *s, float x, float y)
         glutBitmapCharacter (font, s[i]);
 }
 
-static void drawMap(void)
-{
+static void drawMap(void) {
     glClear(GL_COLOR_BUFFER_BIT);
 
     // Dibuja la Cuadrícula
@@ -319,8 +311,8 @@ static void drawMap(void)
     glLineWidth(unitSize);
 
     glBegin(GL_LINE_STRIP);
-    for (int i = largo - 1; i >= 0; i--) {
-        glVertex2f(xPos2d(snake[i][0]), yPos2d(snake[i][1]));
+    for (int i = player->length - 1; i >= 0; i--) {
+        glVertex2f(xPos2d(player->tail[i][0]), yPos2d(player->tail[i][1]));
     }
     glEnd();
 
@@ -335,8 +327,7 @@ static void drawMap(void)
     drawString(GLUT_BITMAP_9_BY_15, ss.str().c_str(), -0.85, -0.85);
 }
 
-static void drawPerspective(void)
-{
+static void drawPerspective(void) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Dibuja la Cuadrícula
@@ -397,9 +388,9 @@ static void drawPerspective(void)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    for (int i = largo - 1; i >= 0; i--) {
+    for (int i = player->length - 1; i >= 0; i--) {
         glPushMatrix();
-        glTranslatef(xPos2d(snake[i][0]), yPos2d(snake[i][1]), 0.0);
+        glTranslatef(xPos2d(player->tail[i][0]), yPos2d(player->tail[i][1]), 0.0);
         glutSolidCube(0.05);
         glPopMatrix();
     }
@@ -418,16 +409,14 @@ static void drawPerspective(void)
     drawString(GLUT_BITMAP_9_BY_15, ss.str().c_str(), -0.85, -0.85);
 }
 
-void reshape(int w, int h)
-{
+void reshape(int w, int h) {
     glViewport(0, 0, (GLsizei) w, (GLsizei) h);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(60.0, (GLfloat) w/(GLfloat) h, 1.0, 20.0);
 }
 
-static void display(void)
-{
+static void display(void) {
     double snakeX, snakeY;
 
     glMatrixMode(GL_MODELVIEW);
@@ -440,8 +429,8 @@ static void display(void)
 
         drawMap();
     } else {
-        snakeX = xPos2d(snake[0][0]);
-        snakeY = yPos2d(snake[0][1]);
+        snakeX = xPos2d(player->tail[0][0]);
+        snakeY = yPos2d(player->tail[0][1]);
 
         snakeY = snakeY <= -0.5 ? -0.5 : snakeY;
         snakeY = snakeY >= 1.5 ? 1.5 : snakeY;
@@ -457,24 +446,22 @@ static void display(void)
 }
 
 // Regresa verdadero si la serpiente colisiona con un par de puntos
-bool snakeHits(float x, float y)
-{
+bool snakeHits(float x, float y) {
     double nextX, nextY;
 
-    nextX = snake[0][0];
-    nextY = snake[0][1];
+    nextX = player->tail[0][0];
+    nextY = player->tail[0][1];
 
     return nextX == x && nextY == y;
 }
 
 int counter;
 
-void myTimer(int valor)
-{
+void myTimer(int valor) {
     double nextX, nextY;
 
-    nextX = snake[0][0];
-    nextY = snake[0][1];
+    nextX = player->tail[0][0];
+    nextY = player->tail[0][1];
 
     // Revisa si la Serpiente colisiona con el marco
     // y cambia la dirección cuando sea necesario
@@ -498,18 +485,12 @@ void myTimer(int valor)
         // Incrementa el score
         score += (1 * scoreMultiplier);
 
-        if (largo < largoMaximo-1) {
-
-            // Crece la serpiente
-            largo += 1;
+        if (!player->full()) {
+            player->eat();
         } else {
 
             // o Gana y regresa a su posición, dirección y tamaño inicial
-            largo = 2;
-            snake[0][0] = x;
-            snake[0][1] = y;
-            snake[1][0] = x-1;
-            snake[1][1] = y;
+            player->reset();
             dirX = 1;
             dirY = 0;
 
@@ -524,27 +505,17 @@ void myTimer(int valor)
         crece = 0;
     }
 
-    // Corre los elementos
-    for (int i = largo; i > 0; i--) {
-        snake[i][0] = snake[i-1][0];
-        snake[i][1] = snake[i-1][1];
-    }
-
-    // Actualizar la cabeza de la serpiente con `dirX`, `dirY` actual
-    snake[0][0] = snake[1][0] + dirX;
-    snake[0][1] = snake[1][1] + dirY;
+    player->moveTo(dirX, dirY);
 
     glutPostRedisplay();
     glutTimerFunc(timerTick, myTimer, 1);
 }
 
-void myKeyboard(unsigned char theKey, int mouseX, int mouseY)
-{
+void myKeyboard(unsigned char theKey, int mouseX, int mouseY) {
     // Cambia el valor de dirX y dirY dependiendo de la tecla que oprima el usuario.
     // Activa la bandera de crecer para que la funcion `myTimer` crezca la serpiente en una unidad.
     // Debe funcionar para mayuscula y minuscula.
-    switch (theKey)
-    {
+    switch (theKey) {
         // Mueve la serpiente
         case 'w': case 'W':
             if (dirY != -1) { dirX = 0; dirY = 1; }
@@ -575,8 +546,7 @@ void myKeyboard(unsigned char theKey, int mouseX, int mouseY)
     }
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     glutInit(&argc, argv);
     glutInitWindowSize(width, height);
     glutInitWindowPosition(120, 120);
