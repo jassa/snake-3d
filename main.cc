@@ -193,7 +193,7 @@ static void init() {
   glGenTextures(2, texName);
   Image* image;
 
-  image = loadBMP("/Users/javier/Documents/Tec/Graficas Computacionales/snake/snake/snake.bmp");
+  image = loadBMP("/Users/javier/Documents/Tec/Graficas Computacionales/snake/snake/snake-2.bmp");
   loadTexture(image, 0);
 
   image = loadBMP("/Users/javier/Documents/Tec/Graficas Computacionales/snake/snake/apple.bmp");
@@ -393,16 +393,15 @@ static void drawPerspective(void) {
   glPopMatrix();
 
   // Dibuja la Serpiente
-  glColor3f(1.0, 1.0, 0.0);
+  glColor3f(0.8, 1.0, 0.0);
 
   glBindTexture(GL_TEXTURE_2D, texName[0]);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
   for (int i = player->length - 1; i >= 0; i--) {
     glPushMatrix();
     glTranslated(xPos2d(player->xAt(i)), yPos2d(player->yAt(i)), 0.025);
-    glutSolidCube(0.05);
+    glScaled(0.1, 0.1, 0.1);
+    glutSolidCube(0.5);
     glPopMatrix();
   }
 
