@@ -94,6 +94,9 @@ int appleX, appleY;
 // Flag para (re)generar
 bool applePresent = false;
 
+// Angulo de rotación
+int appleAngle = 0;
+
 
 /*
  Serpiente
@@ -193,10 +196,10 @@ static void init() {
   glGenTextures(2, texName);
   Image* image;
 
-  image = loadBMP("/Users/javier/Documents/Tec/Graficas Computacionales/snake/snake/snake-2.bmp");
+  image = loadBMP("/Users/javier/Documents/Tec/Graficas Computacionales/snake/snake/snake.bmp");
   loadTexture(image, 0);
 
-  image = loadBMP("/Users/javier/Documents/Tec/Graficas Computacionales/snake/snake/apple.bmp");
+  image = loadBMP("/Users/javier/Documents/Tec/Graficas Computacionales/snake/snake/apple-2.bmp");
   loadTexture(image, 1);
 
   delete image;
@@ -254,6 +257,8 @@ void drawString (void *font, const char *s, float x, float y) {
 }
 
 static void drawMap(void) {
+  glDisable(GL_LIGHTING);
+  glDisable(GL_LIGHT0);
   glDisable(GL_DEPTH_TEST);
   glClear(GL_COLOR_BUFFER_BIT);
 
@@ -325,7 +330,18 @@ static void drawMap(void) {
 
 static void drawPerspective(void) {
   glEnable(GL_DEPTH_TEST);
+  glEnable(GL_LIGHTING);
+  glEnable(GL_LIGHT0);
+
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  
+  GLfloat ambientLight[] = {0.5f, 0.4f, 0.4f, 1.0f};
+  glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientLight);
+  
+  GLfloat directedLight[] = {0.7f, 0.7f, 0.7f, 1.0f};
+  GLfloat directedLightPos[] = {-10.0f, 15.0f, 20.0f, 0.0f};
+  glLightfv(GL_LIGHT0, GL_DIFFUSE, directedLight);
+  glLightfv(GL_LIGHT0, GL_POSITION, directedLightPos);
 
   // Dibuja la Cuadrícula
   glColor3f(0.2, 0.0, 0.2);
@@ -379,16 +395,19 @@ static void drawPerspective(void) {
   glEnable(GL_TEXTURE_2D);
 
   // Dibuja la Manzana
-  glColor3f(1.0, 0.0, 0.0);
+  glColor3f(1.5, 0.0, 0.0);
 
-  glBindTexture(GL_TEXTURE_2D, texName[1]);
   glEnable(GL_TEXTURE_GEN_S);
   glEnable(GL_TEXTURE_GEN_T);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
+  glBindTexture(GL_TEXTURE_2D, texName[1]);
+  
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+  
   glPushMatrix();
   glTranslated(xPos2d(appleX), yPos2d(appleY), 0.025);
+  glRotated(appleAngle, 0.3, 1.0, 0.0);
   glutSolidCube(0.05);
   glPopMatrix();
 
@@ -488,6 +507,8 @@ void myTimer(int valor) {
     dirY = 0;
     dirX = 1;
   }
+  
+  appleAngle = (appleAngle >= 360) ? 0 : appleAngle + 5;
 
   // Crece la cola primero para que el jugador tenga mejor control
   if (crece == 1 || snakeHits(appleX, appleY)) {
