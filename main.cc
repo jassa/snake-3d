@@ -72,6 +72,7 @@ int scoreMultiplier = 1;
 // Timer
 double timerTick = 65;
 double timerMultiplier = 0.8;
+double speed = 1.0;
 
 // Dirección de movimiento
 int dirX = 1; // X=1 Derecha, X=-1 Izq.
@@ -83,6 +84,10 @@ bool showMap = false;
 // Guarda nombre de la textura
 static GLuint texName[36];
 
+// Menu
+typedef enum { SPEED1, SPEED2, SPEED3,
+  PERSP1, PERSP2, SALIR } opcionesMenu;
+
 
 /*
  Manzana
@@ -90,9 +95,6 @@ static GLuint texName[36];
 
 // Posición
 int appleX, appleY;
-
-// Flag para (re)generar
-bool applePresent = false;
 
 // Angulo de rotación
 int appleAngle = 0;
@@ -168,6 +170,73 @@ void loadTexture(Image* image,int k) {
 // Reads a bitmap image from a file
 Image* loadBMP(const char* filename);
 
+void splashScreen() {
+  glColor3f(0.2, 0.0, 0.2);
+  glLineWidth(1);
+  
+  glBegin(GL_LINES);
+  
+  for(int i = 0; i <= unitsPerRow; i += 2) {
+    glVertex2d(minX, 0);
+    glVertex2f(maxX, 1);
+    glVertex2d(1, minY);
+    glVertex2f(0, maxY);
+  }
+  
+  glEnd();
+}
+
+void onMenu(int opcion) {
+	switch(opcion) {
+      
+    // Casos Velocidad
+    case SPEED1:
+      speed = 1.0;
+      break;
+    case SPEED2:
+      speed = 2.0;
+      break;
+    case SPEED3:
+      speed = 3.0;
+      break;
+      
+    // Casos Perspectiva
+    case PERSP1:
+      showMap = false;
+      break;
+    case PERSP2:
+      showMap = true;
+      break;
+
+    // Salir
+    case SALIR:
+      exit(0);
+      break;
+	}
+	glutPostRedisplay();
+}
+
+void initMenu(void) {
+	int menuVelocidad, menuPerspectiva, menuPrincipal;
+  
+	menuVelocidad = glutCreateMenu(onMenu);
+	glutAddMenuEntry("Principiante", SPEED1);
+	glutAddMenuEntry("Intermedio", SPEED2);
+  glutAddMenuEntry("Avanzado", SPEED3);
+  
+	menuPerspectiva = glutCreateMenu(onMenu);
+	glutAddMenuEntry("3D", PERSP1);
+	glutAddMenuEntry("2D", PERSP2);
+    
+	menuPrincipal = glutCreateMenu(onMenu);
+	glutAddSubMenu("Nivel", menuVelocidad);
+	glutAddSubMenu("Perspectiva (2D/3D)", menuPerspectiva);
+  glutAddMenuEntry("Salir", SALIR);
+  
+	glutAttachMenu(GLUT_RIGHT_BUTTON);
+}
+
+
 /*
  *
  * public: init()
@@ -184,6 +253,8 @@ static void init() {
   glEnable(GL_NORMALIZE);
   glEnable(GL_COLOR_MATERIAL);
   glShadeModel(GL_FLAT);
+  
+  splashScreen();
 
   player = new Snake(unitsPerRow / 2, // initial position in X
                      unitsPerCol / 2, // initial position in y
@@ -191,6 +262,13 @@ static void init() {
 
   // Random seed
   srand((int) time(NULL));
+  
+  // Genera la Manzana por primera vez
+  appleX = rand() % unitsPerRow + 1;
+  appleY = rand() % unitsPerCol + 1;
+  
+  // Crea menu
+  initMenu();
 
   // Texturas
   glGenTextures(2, texName);
@@ -199,11 +277,12 @@ static void init() {
   image = loadBMP("/Users/javier/Documents/Tec/Graficas Computacionales/snake/snake/snake.bmp");
   loadTexture(image, 0);
 
-  image = loadBMP("/Users/javier/Documents/Tec/Graficas Computacionales/snake/snake/apple-2.bmp");
+  image = loadBMP("/Users/javier/Documents/Tec/Graficas Computacionales/snake/snake/apple.bmp");
   loadTexture(image, 1);
 
   delete image;
 }
+
 
 /*
  *
@@ -256,6 +335,20 @@ void drawString (void *font, const char *s, float x, float y) {
     glutBitmapCharacter (font, s[i]);
 }
 
+void draw3dString (void *font, const char *s, float x, float y, float z) {
+  unsigned int i;
+  
+  glPushMatrix();
+
+  glTranslatef(x, y, z);
+  glScaled(0.0005, 0.0005, 0.0005);
+  
+  for (i = 0; i < strlen (s); i++)
+		glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN, s[i]);
+  
+  glPopMatrix();
+}
+
 static void drawMap(void) {
   glDisable(GL_LIGHTING);
   glDisable(GL_LIGHT0);
@@ -290,13 +383,6 @@ static void drawMap(void) {
 
   glLineWidth(1);
 
-  // (Re)Genera la Manzana
-  if (!applePresent) {
-    appleX = rand() % unitsPerRow + 1;
-    appleY = rand() % unitsPerCol + 1;
-    applePresent = true;
-  }
-
   // Dibuja la Manzana
   glColor3f(1.0, 0.0, 0.0);
   glPointSize(6);
@@ -323,7 +409,6 @@ static void drawMap(void) {
   glColor3f(1.0, 1.0, 1.0);
 
   std::stringstream ss; // Helper para desplegar el marcador
-
   ss << "Score: " << std::to_string(score);
   drawString(GLUT_BITMAP_9_BY_15, ss.str().c_str(), -0.85, -0.85);
 }
@@ -334,10 +419,10 @@ static void drawPerspective(void) {
   glEnable(GL_LIGHT0);
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  
+
   GLfloat ambientLight[] = {0.5f, 0.4f, 0.4f, 1.0f};
   glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientLight);
-  
+
   GLfloat directedLight[] = {0.7f, 0.7f, 0.7f, 1.0f};
   GLfloat directedLightPos[] = {-10.0f, 15.0f, 20.0f, 0.0f};
   glLightfv(GL_LIGHT0, GL_DIFFUSE, directedLight);
@@ -385,13 +470,6 @@ static void drawPerspective(void) {
   glutSolidCube(0.05);
   glPopMatrix();
 
-  // (Re)Genera la Manzana
-  if (!applePresent) {
-    appleX = rand() % (int) unitsPerRow + 1;
-    appleY = rand() % (int) unitsPerCol + 1;
-    applePresent = true;
-  }
-
   glEnable(GL_TEXTURE_2D);
 
   // Dibuja la Manzana
@@ -401,10 +479,10 @@ static void drawPerspective(void) {
   glEnable(GL_TEXTURE_GEN_T);
 
   glBindTexture(GL_TEXTURE_2D, texName[1]);
-  
+
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-  
+
   glPushMatrix();
   glTranslated(xPos2d(appleX), yPos2d(appleY), 0.025);
   glRotated(appleAngle, 0.3, 1.0, 0.0);
@@ -419,23 +497,20 @@ static void drawPerspective(void) {
   for (int i = player->length - 1; i >= 0; i--) {
     glPushMatrix();
     glTranslated(xPos2d(player->xAt(i)), yPos2d(player->yAt(i)), 0.025);
-    glScaled(0.1, 0.1, 0.1);
-    glutSolidCube(0.5);
+    glutSolidCube(0.05);
     glPopMatrix();
   }
 
   glDisable(GL_TEXTURE_GEN_S);
   glDisable(GL_TEXTURE_GEN_T);
-
   glDisable(GL_TEXTURE_2D);
 
   // Dibuja el Marcador
   glColor3f(1.0, 1.0, 1.0);
 
   std::stringstream ss; // Helper para desplegar el marcador
-
   ss << "Score: " << std::to_string(score);
-  drawString(GLUT_BITMAP_9_BY_15, ss.str().c_str(), -0.85, -0.85);
+  draw3dString(GLUT_STROKE_MONO_ROMAN, ss.str().c_str(), -0.85, -0.85, 0.0);
 }
 
 void reshape(int w, int h) {
@@ -507,7 +582,7 @@ void myTimer(int valor) {
     dirY = 0;
     dirX = 1;
   }
-  
+
   appleAngle = (appleAngle >= 360) ? 0 : appleAngle + 5;
 
   // Crece la cola primero para que el jugador tenga mejor control
@@ -532,14 +607,16 @@ void myTimer(int valor) {
       timerTick *= timerMultiplier;
     }
 
-    applePresent = false;
+    appleX = rand() % unitsPerRow + 1;
+    appleY = rand() % unitsPerCol + 1;
+
     crece = 0;
   }
 
   player->moveTo(dirX, dirY);
 
   glutPostRedisplay();
-  glutTimerFunc(timerTick, myTimer, 1);
+  glutTimerFunc(timerTick / speed, myTimer, 1);
 }
 
 void myKeyboard(unsigned char theKey, int mouseX, int mouseY) {
@@ -569,6 +646,16 @@ void myKeyboard(unsigned char theKey, int mouseX, int mouseY) {
     // Esconde/despliega el mapa
     case 'm': case 'M':
       showMap = !showMap;
+      break;
+      
+    // Aumenta la velocidad
+    case 'v':
+      speed *= 1.1;
+      break;
+
+    // Disminuye la velocidad
+    case 'V':
+      speed *= 0.9;
       break;
 
     // Salir
