@@ -48,8 +48,8 @@ double height = 480;
 double unitSize = 10;
 
 // Unidades por fila y por columna
-double unitsPerRow = width / unitSize;
-double unitsPerCol = height / unitSize;
+int unitsPerRow = width / unitSize;
+int unitsPerCol = height / unitSize;
 
 
 /*
@@ -57,17 +57,13 @@ double unitsPerCol = height / unitSize;
  ******************************/
 
 // Límites del Marco
-double limitX = unitsPerRow;
-double limitY = unitsPerCol;
+int limitX = unitsPerRow;
+int limitY = unitsPerCol;
 
 
 /*
  Variables compartidas 2D/3D
  ******************************/
-
-// Coordenadas iniciales de la serpiente
-double x = unitsPerRow / 2;
-double y = unitsPerCol / 2;
 
 // Marcador
 int score = 0;
@@ -78,8 +74,8 @@ double timerTick = 65;
 double timerMultiplier = 0.8;
 
 // Dirección de movimiento
-double dirX = 1.0; // X=1 Derecha, X=-1 Izq.
-double dirY = 0.0; // Y=1 Arriba,  Y=-1 Abajo
+int dirX = 1; // X=1 Derecha, X=-1 Izq.
+int dirY = 0; // Y=1 Arriba,  Y=-1 Abajo
 
 // Flag para desplegar el mapa
 bool showMap = false;
@@ -143,27 +139,27 @@ int crece = 0;
  ********************************************************************************/
 
 void loadTexture(Image* image,int k) {
-    glBindTexture(GL_TEXTURE_2D, texName[k]); // Tell OpenGL which texture to edit
+  glBindTexture(GL_TEXTURE_2D, texName[k]); // Tell OpenGL which texture to edit
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_NEAREST);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 
-    // Map the image to the texture
-    glTexImage2D(GL_TEXTURE_2D,               // Always GL_TEXTURE_2D
-                 0,                           // 0 for now
-                 GL_RGB,                      // Format OpenGL uses for image
-                 image->width, image->height, // Width and height
-                 0,                           // The border of the image
-                 GL_RGB,                      // GL_RGB, because pixels are stored in RGB format
-                 GL_UNSIGNED_BYTE,            // GL_UNSIGNED_BYTE, because pixels are stored
-                                              //   as unsigned numbers
-                 image->pixels);              // The actual pixel data
+  // Map the image to the texture
+  glTexImage2D(GL_TEXTURE_2D,               // Always GL_TEXTURE_2D
+               0,                           // 0 for now
+               GL_RGB,                      // Format OpenGL uses for image
+               image->width, image->height, // Width and height
+               0,                           // The border of the image
+               GL_RGB,                      // GL_RGB, because pixels are stored in RGB format
+               GL_UNSIGNED_BYTE,            // GL_UNSIGNED_BYTE, because pixels are stored
+                                            //   as unsigned numbers
+               image->pixels);              // The actual pixel data
 }
 
 // Reads a bitmap image from a file
@@ -179,32 +175,31 @@ Image* loadBMP(const char* filename);
  *
  */
 static void init() {
-    glClearColor(0.0, 0.0, 0.0, 0.0);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_BLEND);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_NORMALIZE);
-    glEnable(GL_COLOR_MATERIAL);
-    glShadeModel(GL_FLAT);
+  glClearColor(0.0, 0.0, 0.0, 0.0);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glEnable(GL_BLEND);
+  glEnable(GL_NORMALIZE);
+  glEnable(GL_COLOR_MATERIAL);
+  glShadeModel(GL_FLAT);
 
-    player = new Snake(unitsPerRow / 2, // initial position in X
-                       unitsPerCol / 2, // initial position in y
-                       100);            // maximum length of tail
+  player = new Snake(unitsPerRow / 2, // initial position in X
+                     unitsPerCol / 2, // initial position in y
+                     100);            // maximum length of tail
 
-    // Random seed
-    srand((int) time(NULL));
+  // Random seed
+  srand((int) time(NULL));
 
-    // Texturas
-    glGenTextures(2, texName);
-    Image* image;
+  // Texturas
+  glGenTextures(2, texName);
+  Image* image;
 
-    image = loadBMP("/Users/javier/Documents/Tec/Graficas Computacionales/snake/snake/snake.bmp");
-    loadTexture(image, 0);
-    
-    image = loadBMP("/Users/javier/Documents/Tec/Graficas Computacionales/snake/snake/apple.bmp");
-    loadTexture(image, 1);
+  image = loadBMP("/Users/javier/Documents/Tec/Graficas Computacionales/snake/snake/snake.bmp");
+  loadTexture(image, 0);
 
-    delete image;
+  image = loadBMP("/Users/javier/Documents/Tec/Graficas Computacionales/snake/snake/apple.bmp");
+  loadTexture(image, 1);
+
+  delete image;
 }
 
 /*
@@ -221,11 +216,11 @@ static void init() {
  *    - cuando x = 32, regresa 0.0
  *
  */
-double xPos2d(double x) {
-    double wide = maxX - minX;
-    double mappedX = x * (wide / unitsPerRow);
+double xPos2d(int x) {
+  double wide = maxX - minX;
+  double mappedX = x * (wide / unitsPerRow);
 
-    return minX + mappedX;
+  return minX + mappedX;
 }
 
 /*
@@ -242,324 +237,340 @@ double xPos2d(double x) {
  *    - cuando y = 24, regresa 0.0
  *
  */
-double yPos2d(double y) {
-    double tall = maxY - minY;
-    double mappedY = y * (tall / unitsPerCol);
+double yPos2d(int y) {
+  double tall = maxY - minY;
+  double mappedY = y * (tall / unitsPerCol);
 
-    return minY + mappedY;
+  return minY + mappedY;
 }
 
 // Dibuja un String
 void drawString (void *font, const char *s, float x, float y) {
-    unsigned int i;
-    glRasterPos2f(x, y);
+  unsigned int i;
+  glRasterPos2f(x, y);
 
-    for (i = 0; i < strlen (s); i++)
-        glutBitmapCharacter (font, s[i]);
+  for (i = 0; i < strlen (s); i++)
+    glutBitmapCharacter (font, s[i]);
 }
 
 static void drawMap(void) {
-    glClear(GL_COLOR_BUFFER_BIT);
+  glDisable(GL_DEPTH_TEST);
+  glClear(GL_COLOR_BUFFER_BIT);
 
-    // Dibuja la Cuadrícula
-    glColor3f(0.2, 0.0, 0.2);
-    glLineWidth(1);
+  // Dibuja la Cuadrícula
+  glColor3f(0.2, 0.0, 0.2);
+  glLineWidth(1);
 
-    glBegin(GL_LINES);
+  glBegin(GL_LINES);
 
-    for(double i = 0; i <= unitsPerRow; i += 2) {
-        glVertex2d(minX, xPos2d(i));
-        glVertex2f(maxX, xPos2d(i));
-        glVertex2d(xPos2d(i), minY);
-        glVertex2f(xPos2d(i), maxY);
-    }
+  for(int i = 0; i <= unitsPerRow; i += 2) {
+    glVertex2d(minX, xPos2d(i));
+    glVertex2f(maxX, xPos2d(i));
+    glVertex2d(xPos2d(i), minY);
+    glVertex2f(xPos2d(i), maxY);
+  }
 
-    glEnd();
+  glEnd();
 
-    // Dibuja el Marco
-    glColor3f(0.6, 0.0, 0.6);
-    glLineWidth(3);
+  // Dibuja el Marco
+  glColor3f(0.6, 0.0, 0.6);
+  glLineWidth(3);
 
-    glBegin(GL_LINE_LOOP);
-    glVertex2f(minX, minY);
-    glVertex2f(minX, maxY);
-    glVertex2f(maxX, maxY);
-    glVertex2f(maxX, minY);
-    glEnd();
+  glBegin(GL_LINE_LOOP);
+  glVertex2f(minX, minY);
+  glVertex2f(minX, maxY);
+  glVertex2f(maxX, maxY);
+  glVertex2f(maxX, minY);
+  glEnd();
 
-    glLineWidth(1);
+  glLineWidth(1);
 
-    // (Re)Genera la Manzana
-    if (!applePresent) {
-        appleX = rand() % (int) unitsPerRow + 1;
-        appleY = rand() % (int) unitsPerCol + 1;
-        applePresent = true;
-    }
+  // (Re)Genera la Manzana
+  if (!applePresent) {
+    appleX = rand() % unitsPerRow + 1;
+    appleY = rand() % unitsPerCol + 1;
+    applePresent = true;
+  }
 
-    // Dibuja la Manzana
-    glColor3f(1.0, 0.0, 0.0);
-    glPointSize(6);
+  // Dibuja la Manzana
+  glColor3f(1.0, 0.0, 0.0);
+  glPointSize(6);
 
-    glBegin(GL_POINTS);
-    glVertex2f(xPos2d(appleX), yPos2d(appleY));
-    glEnd();
+  glBegin(GL_POINTS);
+  glVertex2f(xPos2d(appleX), yPos2d(appleY));
+  glEnd();
 
-    glPointSize(1);
+  glPointSize(1);
 
-    // Dibuja la Serpiente
-    glColor3f(1.0, 1.0, 0.0);
-    glLineWidth(unitSize);
+  // Dibuja la Serpiente
+  glColor3f(1.0, 1.0, 0.0);
+  glLineWidth(unitSize);
 
-    glBegin(GL_LINE_STRIP);
-    for (int i = player->length - 1; i >= 0; i--) {
-        glVertex2f(xPos2d(player->tail[i][0]), yPos2d(player->tail[i][1]));
-    }
-    glEnd();
+  glBegin(GL_LINE_STRIP);
+  for (int i = player->length - 1; i >= 0; i--) {
+    glVertex2f(xPos2d(player->xAt(i)), yPos2d(player->yAt(i)));
+  }
+  glEnd();
 
-    glLineWidth(1);
+  glLineWidth(1);
 
-    // Dibuja el Marcador
-    glColor3f(1.0, 1.0, 1.0);
+  // Dibuja el Marcador
+  glColor3f(1.0, 1.0, 1.0);
 
-    std::stringstream ss; // Helper para desplegar el marcador
+  std::stringstream ss; // Helper para desplegar el marcador
 
-    ss << "Score: " << std::to_string(score);
-    drawString(GLUT_BITMAP_9_BY_15, ss.str().c_str(), -0.85, -0.85);
+  ss << "Score: " << std::to_string(score);
+  drawString(GLUT_BITMAP_9_BY_15, ss.str().c_str(), -0.85, -0.85);
 }
 
 static void drawPerspective(void) {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glEnable(GL_DEPTH_TEST);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Dibuja la Cuadrícula
-    glColor3f(0.2, 0.0, 0.2);
-    glLineWidth(1);
+  // Dibuja la Cuadrícula
+  glColor3f(0.2, 0.0, 0.2);
+  glLineWidth(1);
 
-    glBegin(GL_LINES);
+  glBegin(GL_LINES);
 
-    for(double i = 0; i <= unitsPerRow; i += 2) {
-        glVertex2d(minX, xPos2d(i));
-        glVertex2f(maxX, xPos2d(i));
-        glVertex2d(xPos2d(i), minY);
-        glVertex2f(xPos2d(i), maxY);
-    }
+  for(double i = 0; i <= unitsPerRow; i += 2) {
+    glVertex2d(minX, xPos2d(i));
+    glVertex2f(maxX, xPos2d(i));
+    glVertex2d(xPos2d(i), minY);
+    glVertex2f(xPos2d(i), maxY);
+  }
 
-    glEnd();
+  glEnd();
 
-    // Dibuja el Marco
-    glColor3f(0.6, 0.0, 0.6);
-    glLineWidth(3);
+  // Dibuja el Marco
+  glColor3f(0.6, 0.0, 0.6);
 
-    glBegin(GL_LINE_LOOP);
-    glVertex2f(minX, minY);
-    glVertex2f(minX, maxY);
-    glVertex2f(maxX, maxY);
-    glVertex2f(maxX, minY);
-    glEnd();
+  glPushMatrix();
+  glTranslated(maxX + 0.05, 0.0, 0.0);
+  glScaled(1.0, 1.0 * 41, 1.0);
+  glutSolidCube(0.05);
+  glPopMatrix();
 
-    glLineWidth(1);
+  glPushMatrix();
+  glTranslated(minX - 0.05, 0.0, 0.0);
+  glScaled(1.0, 1.0 * 41, 1.0);
+  glutSolidCube(0.05);
+  glPopMatrix();
 
-    // (Re)Genera la Manzana
-    if (!applePresent) {
-        appleX = rand() % (int) unitsPerRow + 1;
-        appleY = rand() % (int) unitsPerCol + 1;
-        applePresent = true;
-    }
+  glPushMatrix();
+  glTranslated(0.0, minY - 0.05, 0.0);
+  glScaled(1.0 * 43, 1.0, 1.0);
+  glutSolidCube(0.05);
+  glPopMatrix();
 
-    glEnable(GL_TEXTURE_2D);
+  glPushMatrix();
+  glTranslated(0.0, maxY + 0.05, 0.0);
+  glScaled(1.0 * 43, 1.0, 1.0);
+  glutSolidCube(0.05);
+  glPopMatrix();
 
-    // Dibuja la Manzana
-    glColor3f(1.0, 0.0, 0.0);
+  // (Re)Genera la Manzana
+  if (!applePresent) {
+    appleX = rand() % (int) unitsPerRow + 1;
+    appleY = rand() % (int) unitsPerCol + 1;
+    applePresent = true;
+  }
 
-    glBindTexture(GL_TEXTURE_2D, texName[1]);
-    glEnable(GL_TEXTURE_GEN_S);
-    glEnable(GL_TEXTURE_GEN_T);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glEnable(GL_TEXTURE_2D);
 
+  // Dibuja la Manzana
+  glColor3f(1.0, 0.0, 0.0);
+
+  glBindTexture(GL_TEXTURE_2D, texName[1]);
+  glEnable(GL_TEXTURE_GEN_S);
+  glEnable(GL_TEXTURE_GEN_T);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+  glPushMatrix();
+  glTranslated(xPos2d(appleX), yPos2d(appleY), 0.025);
+  glutSolidCube(0.05);
+  glPopMatrix();
+
+  // Dibuja la Serpiente
+  glColor3f(1.0, 1.0, 0.0);
+
+  glBindTexture(GL_TEXTURE_2D, texName[0]);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+  for (int i = player->length - 1; i >= 0; i--) {
     glPushMatrix();
-    glTranslatef(xPos2d(appleX), yPos2d(appleY), 0.0);
+    glTranslated(xPos2d(player->xAt(i)), yPos2d(player->yAt(i)), 0.025);
     glutSolidCube(0.05);
     glPopMatrix();
+  }
 
-    // Dibuja la Serpiente
-    glColor3f(1.0, 1.0, 0.0);
+  glDisable(GL_TEXTURE_GEN_S);
+  glDisable(GL_TEXTURE_GEN_T);
 
-    glBindTexture(GL_TEXTURE_2D, texName[0]);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glDisable(GL_TEXTURE_2D);
 
-    for (int i = player->length - 1; i >= 0; i--) {
-        glPushMatrix();
-        glTranslatef(xPos2d(player->tail[i][0]), yPos2d(player->tail[i][1]), 0.0);
-        glutSolidCube(0.05);
-        glPopMatrix();
-    }
+  // Dibuja el Marcador
+  glColor3f(1.0, 1.0, 1.0);
 
-    glDisable(GL_TEXTURE_GEN_S);
-    glDisable(GL_TEXTURE_GEN_T);
+  std::stringstream ss; // Helper para desplegar el marcador
 
-    glDisable(GL_TEXTURE_2D);
-
-    // Dibuja el Marcador
-    glColor3f(1.0, 1.0, 1.0);
-
-    std::stringstream ss; // Helper para desplegar el marcador
-
-    ss << "Score: " << std::to_string(score);
-    drawString(GLUT_BITMAP_9_BY_15, ss.str().c_str(), -0.85, -0.85);
+  ss << "Score: " << std::to_string(score);
+  drawString(GLUT_BITMAP_9_BY_15, ss.str().c_str(), -0.85, -0.85);
 }
 
 void reshape(int w, int h) {
-    glViewport(0, 0, (GLsizei) w, (GLsizei) h);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluPerspective(60.0, (GLfloat) w/(GLfloat) h, 1.0, 20.0);
+  glViewport(0, 0, (GLsizei) w, (GLsizei) h);
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  gluPerspective(60.0, (GLfloat) w/(GLfloat) h, 1.0, 20.0);
 }
 
 static void display(void) {
-    double snakeX, snakeY;
+  double snakeX, snakeY;
 
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
 
-    if (showMap) {
-        gluLookAt(0.0, 0.0, 2.0,
-                  0.0, 0.0, 0.0,
-                  0.0, 1.0, 0.0);
+  if (showMap) {
+    gluLookAt(0.0, 0.0, 2.0,
+              0.0, 0.0, 0.0,
+              0.0, 1.0, 0.0);
 
-        drawMap();
-    } else {
-        snakeX = xPos2d(player->tail[0][0]);
-        snakeY = yPos2d(player->tail[0][1]);
+    drawMap();
+  } else {
+    snakeX = xPos2d(player->x());
+    snakeY = yPos2d(player->y());
 
-        snakeY = snakeY <= -0.5 ? -0.5 : snakeY;
-        snakeY = snakeY >= 1.5 ? 1.5 : snakeY;
+    snakeY = snakeY <= -0.5 ? -0.5 : snakeY;
+    snakeY = snakeY >= 1.5 ? 1.5 : snakeY;
 
-        gluLookAt(0.0, -2.0, 1,
-                  0.0, snakeY, 0.0,
-                  0.0, 0.5, 0.0);
+    gluLookAt(0.0, -2.0, 1,
+              0.0, snakeY, 0.0,
+              0.0, 0.5, 0.0);
 
-        drawPerspective();
-    }
+    drawPerspective();
+  }
 
-    glutSwapBuffers();
+  glutSwapBuffers();
 }
 
 // Regresa verdadero si la serpiente colisiona con un par de puntos
 bool snakeHits(float x, float y) {
-    double nextX, nextY;
+  double nextX, nextY;
 
-    nextX = player->tail[0][0];
-    nextY = player->tail[0][1];
+  nextX = player->x();
+  nextY = player->y();
 
-    return nextX == x && nextY == y;
+  return nextX == x && nextY == y;
 }
 
 int counter;
 
 void myTimer(int valor) {
-    double nextX, nextY;
+  int nextX, nextY;
 
-    nextX = player->tail[0][0];
-    nextY = player->tail[0][1];
+  nextX = player->x();
+  nextY = player->y();
 
-    // Revisa si la Serpiente colisiona con el marco
-    // y cambia la dirección cuando sea necesario
-    if (dirX == 1 && nextX >= unitsPerRow) {
-        dirX = 0;
-        dirY = 1;
-    } else if (dirX == -1 && nextX <= 0) {
-        dirX = 0;
-        dirY = -1;
-    } else if (dirY == 1 && nextY >= unitsPerCol) {
-        dirY = 0;
-        dirX = -1;
-    } else if (dirY == -1 && nextY <= 0) {
-        dirY = 0;
-        dirX = 1;
+  // Revisa si la Serpiente colisiona con el marco
+  // y cambia la dirección cuando sea necesario
+  if (dirX == 1 && nextX >= unitsPerRow) {
+    dirX = 0;
+    dirY = 1;
+  } else if (dirX == -1 && nextX <= 0) {
+    dirX = 0;
+    dirY = -1;
+  } else if (dirY == 1 && nextY >= unitsPerCol) {
+    dirY = 0;
+    dirX = -1;
+  } else if (dirY == -1 && nextY <= 0) {
+    dirY = 0;
+    dirX = 1;
+  }
+
+  // Crece la cola primero para que el jugador tenga mejor control
+  if (crece == 1 || snakeHits(appleX, appleY)) {
+
+    // Incrementa el score
+    score += (1 * scoreMultiplier);
+
+    if (!player->full()) {
+      player->eat();
+    } else {
+
+      // o Gana y regresa a su posición, dirección y tamaño inicial
+      player->reset();
+      dirX = 1;
+      dirY = 0;
+
+      // Ahora cada manzana vale más
+      scoreMultiplier++;
+
+      // y se aumenta la velocidad de movimiento
+      timerTick *= timerMultiplier;
     }
 
-    // Crece la cola primero para que el jugador tenga mejor control
-    if (crece == 1 || snakeHits(appleX, appleY)) {
+    applePresent = false;
+    crece = 0;
+  }
 
-        // Incrementa el score
-        score += (1 * scoreMultiplier);
+  player->moveTo(dirX, dirY);
 
-        if (!player->full()) {
-            player->eat();
-        } else {
-
-            // o Gana y regresa a su posición, dirección y tamaño inicial
-            player->reset();
-            dirX = 1;
-            dirY = 0;
-
-            // Ahora cada manzana vale más
-            scoreMultiplier++;
-
-            // y se aumenta la velocidad de movimiento
-            timerTick *= timerMultiplier;
-        }
-
-        applePresent = false;
-        crece = 0;
-    }
-
-    player->moveTo(dirX, dirY);
-
-    glutPostRedisplay();
-    glutTimerFunc(timerTick, myTimer, 1);
+  glutPostRedisplay();
+  glutTimerFunc(timerTick, myTimer, 1);
 }
 
 void myKeyboard(unsigned char theKey, int mouseX, int mouseY) {
-    // Cambia el valor de dirX y dirY dependiendo de la tecla que oprima el usuario.
-    // Activa la bandera de crecer para que la funcion `myTimer` crezca la serpiente en una unidad.
-    // Debe funcionar para mayuscula y minuscula.
-    switch (theKey) {
-        // Mueve la serpiente
-        case 'w': case 'W':
-            if (dirY != -1) { dirX = 0; dirY = 1; }
-            break;
-        case 's': case 'S':
-            if (dirY != 1) { dirX = 0; dirY = -1; }
-            break;
-        case 'a': case 'A':
-            if (dirX != 1) { dirX = -1; dirY = 0; }
-            break;
-        case 'd': case 'D':
-            if (dirX != -1) { dirX = 1; dirY = 0; }
-            break;
+  // Cambia el valor de dirX y dirY dependiendo de la tecla que oprima el usuario.
+  // Activa la bandera de crecer para que la funcion `myTimer` crezca la serpiente en una unidad.
+  // Debe funcionar para mayuscula y minuscula.
+  switch (theKey) {
+    // Mueve la serpiente
+    case 'w': case 'W':
+      if (dirY != -1) { dirX = 0; dirY = 1; }
+      break;
+    case 's': case 'S':
+      if (dirY != 1) { dirX = 0; dirY = -1; }
+      break;
+    case 'a': case 'A':
+      if (dirX != 1) { dirX = -1; dirY = 0; }
+      break;
+    case 'd': case 'D':
+      if (dirX != -1) { dirX = 1; dirY = 0; }
+      break;
 
-        // Crece el tamaño de la serpiente
-        case 'c': case 'C':
-            crece = 1;
-            break;
+    // Crece el tamaño de la serpiente
+    case 'c': case 'C':
+      crece = 1;
+      break;
 
-        // Esconde/despliega el mapa
-        case 'm': case 'M':
-            showMap = !showMap;
-            break;
+    // Esconde/despliega el mapa
+    case 'm': case 'M':
+      showMap = !showMap;
+      break;
 
-        // Salir
-        case 27: case 'e': case 'E':
-            exit(-1);
-    }
+    // Salir
+    case 27: case 'e': case 'E':
+      exit(-1);
+  }
 }
 
 int main(int argc, char *argv[]) {
-    glutInit(&argc, argv);
-    glutInitWindowSize(width, height);
-    glutInitWindowPosition(120, 120);
-    glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
-    glutCreateWindow("Cuarto Avance Snake - ITC 2013");
+  glutInit(&argc, argv);
+  glutInitWindowSize(width, height);
+  glutInitWindowPosition(120, 120);
+  glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
+  glutCreateWindow("Snake 3D - ITC 2013");
 
-    init();
+  init();
 
-    glutDisplayFunc(display);
-    glutReshapeFunc(reshape);
-    glutKeyboardFunc(myKeyboard);
-    glutTimerFunc(100, myTimer, 1);
+  glutDisplayFunc(display);
+  glutReshapeFunc(reshape);
+  glutKeyboardFunc(myKeyboard);
+  glutTimerFunc(100, myTimer, 1);
 
-    glutMainLoop();
-    return EXIT_SUCCESS;
+  glutMainLoop();
+  return EXIT_SUCCESS;
 }

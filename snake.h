@@ -11,6 +11,10 @@ class Snake {
   bool full();
   void moveTo(int x, int y);
   void reset();
+  int xAt(int i);
+  int yAt(int i);
+  int x();
+  int y();
 
   int initX;
   int initY;

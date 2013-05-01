@@ -53,3 +53,19 @@ void Snake::reset() {
   tail[1][0] = initX - 1;
   tail[1][1] = initY;
 }
+
+int Snake::xAt(int i) {
+  return tail[i][0];
+}
+
+int Snake::yAt(int i) {
+  return tail[i][1];
+}
+
+int Snake::x() {
+  return xAt(0);
+}
+
+int Snake::y() {
+  return yAt(0);
+}
