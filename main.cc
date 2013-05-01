@@ -88,6 +88,7 @@ static GLuint texName[36];
 typedef enum { SPEED1, SPEED2, SPEED3,
   PERSP1, PERSP2, SALIR } opcionesMenu;
 
+bool showSplashScreen = true;
 
 /*
  Manzana
@@ -170,25 +171,9 @@ void loadTexture(Image* image,int k) {
 // Reads a bitmap image from a file
 Image* loadBMP(const char* filename);
 
-void splashScreen() {
-  glColor3f(0.2, 0.0, 0.2);
-  glLineWidth(1);
-  
-  glBegin(GL_LINES);
-  
-  for(int i = 0; i <= unitsPerRow; i += 2) {
-    glVertex2d(minX, 0);
-    glVertex2f(maxX, 1);
-    glVertex2d(1, minY);
-    glVertex2f(0, maxY);
-  }
-  
-  glEnd();
-}
-
 void onMenu(int opcion) {
 	switch(opcion) {
-      
+
     // Casos Velocidad
     case SPEED1:
       speed = 1.0;
@@ -199,7 +184,7 @@ void onMenu(int opcion) {
     case SPEED3:
       speed = 3.0;
       break;
-      
+
     // Casos Perspectiva
     case PERSP1:
       showMap = false;
@@ -218,21 +203,21 @@ void onMenu(int opcion) {
 
 void initMenu(void) {
 	int menuVelocidad, menuPerspectiva, menuPrincipal;
-  
+
 	menuVelocidad = glutCreateMenu(onMenu);
 	glutAddMenuEntry("Principiante", SPEED1);
 	glutAddMenuEntry("Intermedio", SPEED2);
   glutAddMenuEntry("Avanzado", SPEED3);
-  
+
 	menuPerspectiva = glutCreateMenu(onMenu);
 	glutAddMenuEntry("3D", PERSP1);
 	glutAddMenuEntry("2D", PERSP2);
-    
+
 	menuPrincipal = glutCreateMenu(onMenu);
 	glutAddSubMenu("Nivel", menuVelocidad);
 	glutAddSubMenu("Perspectiva (2D/3D)", menuPerspectiva);
   glutAddMenuEntry("Salir", SALIR);
-  
+
 	glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
 
@@ -253,8 +238,6 @@ static void init() {
   glEnable(GL_NORMALIZE);
   glEnable(GL_COLOR_MATERIAL);
   glShadeModel(GL_FLAT);
-  
-  splashScreen();
 
   player = new Snake(unitsPerRow / 2, // initial position in X
                      unitsPerCol / 2, // initial position in y
@@ -262,11 +245,11 @@ static void init() {
 
   // Random seed
   srand((int) time(NULL));
-  
+
   // Genera la Manzana por primera vez
   appleX = rand() % unitsPerRow + 1;
   appleY = rand() % unitsPerCol + 1;
-  
+
   // Crea menu
   initMenu();
 
@@ -337,16 +320,106 @@ void drawString (void *font, const char *s, float x, float y) {
 
 void draw3dString (void *font, const char *s, float x, float y, float z) {
   unsigned int i;
-  
+
   glPushMatrix();
 
   glTranslatef(x, y, z);
   glScaled(0.0005, 0.0005, 0.0005);
-  
+
   for (i = 0; i < strlen (s); i++)
 		glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN, s[i]);
-  
+
   glPopMatrix();
+}
+
+void drawSplashScreen() {
+  glClear(GL_COLOR_BUFFER_BIT);
+
+  glColor3f(0.0, 1.0, 0.0);
+  glLineWidth(1);
+
+  std::stringstream ss; // Helper para desplegar el marcador
+
+  ss << "Snake 3D version 4.22 (64-bit)";
+  drawString(GLUT_BITMAP_8_BY_13, ss.str().c_str(), -1.5, 1.08);
+  ss.str("");
+  ss.clear();
+
+  ss << "Copyright (C) 2004 Javier Gerardo Trevino Saldana";
+  drawString(GLUT_BITMAP_8_BY_13, ss.str().c_str(), -1.5, 1.0);
+  ss.str("");
+  ss.clear();
+
+  ss << "Licensed under the GNU General Public License version 2 only";
+  drawString(GLUT_BITMAP_8_BY_13, ss.str().c_str(), -1.5, 0.92);
+  ss.str("");
+  ss.clear();
+
+  ss << "Mac OS X 10.8.3 (12C60) running in multiuser mode";
+  drawString(GLUT_BITMAP_8_BY_13, ss.str().c_str(), -1.5, 0.76);
+  ss.str("");
+  ss.clear();
+
+  ss << "Memory Page Size: 4096";
+  drawString(GLUT_BITMAP_8_BY_13, ss.str().c_str(), -1.5, 0.68);
+  ss.str("");
+  ss.clear();
+
+  ss << "System has 8 Intel core(s) with SSE";
+  drawString(GLUT_BITMAP_8_BY_13, ss.str().c_str(), -1.5, 0.60);
+  ss.str("");
+  ss.clear();
+
+  ss << "Running 2 test sequences... (CTRL-C to quit)";
+  drawString(GLUT_BITMAP_8_BY_13, ss.str().c_str(), -1.5, 0.44);
+  ss.str("");
+  ss.clear();
+
+  ss << "Running tests on full 12899MB region...";
+  drawString(GLUT_BITMAP_8_BY_13, ss.str().c_str(), -1.5, 0.28);
+  ss.str("");
+  ss.clear();
+
+  ss << "  Trabajo Final entregado                      : ok";
+  drawString(GLUT_BITMAP_8_BY_13, ss.str().c_str(), -1.5, 0.20);
+  ss.str("");
+  ss.clear();
+
+  ss << "  Materia de Graficas Computacionales aprobada : ok";
+  drawString(GLUT_BITMAP_8_BY_13, ss.str().c_str(), -1.5, 0.12);
+  ss.str("");
+  ss.clear();
+
+  ss << "Starting game...";
+  drawString(GLUT_BITMAP_8_BY_13, ss.str().c_str(), -1.5, -0.04);
+  ss.str("");
+  ss.clear();
+
+  ss << "  Loading Classes                              : ok";
+  drawString(GLUT_BITMAP_8_BY_13, ss.str().c_str(), -1.5, -0.12);
+  ss.str("");
+  ss.clear();
+
+  ss << "  Applying Textures                            : ok";
+  drawString(GLUT_BITMAP_8_BY_13, ss.str().c_str(), -1.5, -0.20);
+  ss.str("");
+  ss.clear();
+
+  ss << "  Turning Lights on                            : ok";
+  drawString(GLUT_BITMAP_8_BY_13, ss.str().c_str(), -1.5, -0.28);
+  ss.str("");
+  ss.clear();
+
+  ss << "Game Loading Complete...";
+  drawString(GLUT_BITMAP_8_BY_13, ss.str().c_str(), -1.5, -0.44);
+  ss.str("");
+  ss.clear();
+
+  ss << "Press [ENTER] to Play";
+  drawString(GLUT_BITMAP_8_BY_13, ss.str().c_str(), -1.5, -0.60);
+  ss.str("");
+  ss.clear();
+
 }
 
 static void drawMap(void) {
@@ -526,13 +599,24 @@ static void display(void) {
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
-  if (showMap) {
+  if (showSplashScreen) {
+
+    gluLookAt(0.0, 0.0, 2.0,
+              0.0, 0.0, 0.0,
+              0.0, 1.0, 0.0);
+
+    drawSplashScreen();
+
+  } else if (showMap) {
+
     gluLookAt(0.0, 0.0, 2.0,
               0.0, 0.0, 0.0,
               0.0, 1.0, 0.0);
 
     drawMap();
+
   } else {
+
     snakeX = xPos2d(player->x());
     snakeY = yPos2d(player->y());
 
@@ -544,7 +628,9 @@ static void display(void) {
               0.0, 0.5, 0.0);
 
     drawPerspective();
+
   }
+
 
   glutSwapBuffers();
 }
@@ -647,7 +733,7 @@ void myKeyboard(unsigned char theKey, int mouseX, int mouseY) {
     case 'm': case 'M':
       showMap = !showMap;
       break;
-      
+
     // Aumenta la velocidad
     case 'v':
       speed *= 1.1;
@@ -656,6 +742,10 @@ void myKeyboard(unsigned char theKey, int mouseX, int mouseY) {
     // Disminuye la velocidad
     case 'V':
       speed *= 0.9;
+      break;
+
+    case 13:
+      showSplashScreen = false;
       break;
 
     // Salir
@@ -676,7 +766,7 @@ int main(int argc, char *argv[]) {
   glutDisplayFunc(display);
   glutReshapeFunc(reshape);
   glutKeyboardFunc(myKeyboard);
-  glutTimerFunc(100, myTimer, 1);
+  glutTimerFunc(2000, myTimer, 1);
 
   glutMainLoop();
   return EXIT_SUCCESS;
