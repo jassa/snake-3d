@@ -653,6 +653,11 @@ void resetGame() {
 
 void myTimer(int valor) {
   int nextX, nextY;
+  
+  if (showSplashScreen) {
+    glutTimerFunc(timerTick / speed, myTimer, 1);
+    return;
+  }
 
   // Revisa si la Serpiente colisiona con el marco
   // y cambia la dirección cuando sea necesario
@@ -679,7 +684,7 @@ void myTimer(int valor) {
   if (crece == 1 || snakeHits(appleX, appleY)) {
 
     // Incrementa el score
-    score += (1 * scoreMultiplier);
+    score += (1 * scoreMultiplier * speed);
 
     if (!player->full()) {
       player->eat();
