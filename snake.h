@@ -9,7 +9,8 @@ class Snake {
 
   void eat();
   bool full();
-  void moveTo(int x, int y);
+  bool hitsItself(int nextX, int nextY);
+  bool moveTo(int x, int y);
   void reset();
   int xAt(int i);
   int yAt(int i);

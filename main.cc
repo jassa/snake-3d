@@ -645,29 +645,33 @@ bool snakeHits(float x, float y) {
   return nextX == x && nextY == y;
 }
 
-int counter;
+void resetGame() {
+  player->reset();
+  dirX = 1;
+  dirY = 0;
+}
 
 void myTimer(int valor) {
   int nextX, nextY;
 
-  nextX = player->x();
-  nextY = player->y();
-
   // Revisa si la Serpiente colisiona con el marco
   // y cambia la dirección cuando sea necesario
-  if (dirX == 1 && nextX >= unitsPerRow) {
+  if (dirX == 1 && player->x() >= unitsPerRow) {
     dirX = 0;
     dirY = 1;
-  } else if (dirX == -1 && nextX <= 0) {
+  } else if (dirX == -1 && player->x() <= 0) {
     dirX = 0;
     dirY = -1;
-  } else if (dirY == 1 && nextY >= unitsPerCol) {
+  } else if (dirY == 1 && player->y() >= unitsPerCol) {
     dirY = 0;
     dirX = -1;
-  } else if (dirY == -1 && nextY <= 0) {
+  } else if (dirY == -1 && player->y() <= 0) {
     dirY = 0;
     dirX = 1;
   }
+
+  nextX = player->x() + dirX;
+  nextY = player->y() + dirY;
 
   appleAngle = (appleAngle >= 360) ? 0 : appleAngle + 5;
 
@@ -682,9 +686,7 @@ void myTimer(int valor) {
     } else {
 
       // o Gana y regresa a su posición, dirección y tamaño inicial
-      player->reset();
-      dirX = 1;
-      dirY = 0;
+      resetGame();
 
       // Ahora cada manzana vale más
       scoreMultiplier++;
@@ -699,7 +701,13 @@ void myTimer(int valor) {
     crece = 0;
   }
 
-  player->moveTo(dirX, dirY);
+  if (!player->moveTo(dirX, dirY)) {
+    resetGame();
+    score = 0;
+    scoreMultiplier = 1;
+    speed = 1.0;
+    timerMultiplier = 0.8;
+  }
 
   glutPostRedisplay();
   glutTimerFunc(timerTick / speed, myTimer, 1);

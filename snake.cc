@@ -35,14 +35,29 @@ bool Snake::full() {
   return length == maxLength - 1;
 }
 
-void Snake::moveTo(int x, int y) {
+bool Snake::hitsItself(int nextX, int nextY) {
+  for (int i = length; i > 0; i--) {
+    if (tail[i][0] == nextX && tail[i][1] == nextY) return true;
+  }
+
+  return false;
+}
+
+bool Snake::moveTo(int x, int y) {
+  int nextX, nextY;
+
   for (int i = length; i > 0; i--) {
     tail[i][0] = tail[i - 1][0];
     tail[i][1] = tail[i - 1][1];
   }
 
-  tail[0][0] = tail[1][0] + x;
-  tail[0][1] = tail[1][1] + y;
+  nextX = tail[1][0] + x;
+  nextY = tail[1][1] + y;;
+
+  tail[0][0] = nextX;
+  tail[0][1] = nextY;
+
+  return !hitsItself(nextX, nextY);
 }
 
 void Snake::reset() {
