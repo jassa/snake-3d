@@ -3,7 +3,7 @@
 //  Snake
 //
 //  Created by Javier Saldana on 4/9/13.
-//  Last Updated by Javier Saldana on 4/26/13.
+//  Last Updated by Javier Saldana on 5/8/13.
 //  a00618475
 //
 
@@ -81,12 +81,15 @@ int dirY = 0; // Y=1 Arriba,  Y=-1 Abajo
 // Flag para desplegar el mapa
 bool showMap = false;
 
+// Flag para tipo de serpiente
+int snakeShape = 0;
+
 // Guarda nombre de la textura
 static GLuint texName[36];
 
 // Menu
 typedef enum { SPEED1, SPEED2, SPEED3,
-  PERSP1, PERSP2, SALIR } opcionesMenu;
+  PERSP1, PERSP2, SNAKE1, SNAKE2, SALIR } opcionesMenu;
 
 bool showSplashScreen = true;
 
@@ -193,6 +196,14 @@ void onMenu(int opcion) {
       showMap = true;
       break;
 
+    // Casos Forma Serpiente
+    case SNAKE1:
+      snakeShape = 0;
+      break;
+    case SNAKE2:
+      snakeShape = 1;
+      break;
+
     // Salir
     case SALIR:
       exit(0);
@@ -202,7 +213,7 @@ void onMenu(int opcion) {
 }
 
 void initMenu(void) {
-	int menuVelocidad, menuPerspectiva, menuPrincipal;
+	int menuVelocidad, menuPerspectiva, menuSerpiente, menuPrincipal;
 
 	menuVelocidad = glutCreateMenu(onMenu);
 	glutAddMenuEntry("Principiante", SPEED1);
@@ -213,9 +224,14 @@ void initMenu(void) {
 	glutAddMenuEntry("3D", PERSP1);
 	glutAddMenuEntry("2D", PERSP2);
 
+  menuSerpiente = glutCreateMenu(onMenu);
+	glutAddMenuEntry("Esférica", SNAKE1);
+	glutAddMenuEntry("Cubica", SNAKE2);
+
 	menuPrincipal = glutCreateMenu(onMenu);
 	glutAddSubMenu("Nivel", menuVelocidad);
 	glutAddSubMenu("Perspectiva (2D/3D)", menuPerspectiva);
+  glutAddSubMenu("Serpiente", menuSerpiente);
   glutAddMenuEntry("Salir", SALIR);
 
 	glutAttachMenu(GLUT_RIGHT_BUTTON);
@@ -570,7 +586,13 @@ static void drawPerspective(void) {
   for (int i = player->length - 1; i >= 0; i--) {
     glPushMatrix();
     glTranslated(xPos2d(player->xAt(i)), yPos2d(player->yAt(i)), 0.025);
-    glutSolidCube(0.05);
+
+    if (snakeShape == 0) {
+      glutSolidSphere(0.05, 10, 10);
+    } else {
+      glutSolidCube(0.05);
+    }
+
     glPopMatrix();
   }
 
@@ -653,7 +675,7 @@ void resetGame() {
 
 void myTimer(int valor) {
   int nextX, nextY;
-  
+
   if (showSplashScreen) {
     glutTimerFunc(timerTick / speed, myTimer, 1);
     return;
